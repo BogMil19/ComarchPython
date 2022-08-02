@@ -4,19 +4,20 @@ from random import randint
 current_state = 'main'
 
 InventoryItem = namedtuple('InventoryItem', 'Name Qty')
-inventory = OrderedDict()
+inventory_db = OrderedDict()
 for index, value in enumerate(['Box', 'Shoes', 'Hammer', 'Screwdriver'], 1):
-    inventory[index] = InventoryItem(value, randint(1, 5))
+    inventory_db[index] = InventoryItem(value, randint(1, 5))
 
 
-def list_all():
-    header = 'ID'.ljust(8) + 'Name'.ljust(15) + 'Quntity'.ljust(10)
-    print(header)
-    print(len(header) * '-')
-    for item_id, item in inventory.items():
-        item_line = str(item_id).ljust(8) + item.Name.ljust(15) + str(item.Qty).ljust(10)
-        print(item_line)
-    print('\n\n')
+def list_all(inventory=None):
+    if inventory:
+        header = 'ID'.ljust(8) + 'Name'.ljust(15) + 'Quntity'.ljust(10)
+        print(header)
+        print(len(header) * '-')
+        for item_id, item in inventory.items():
+            item_line = str(item_id).ljust(8) + item.Name.ljust(15) + str(item.Qty).ljust(10)
+            print(item_line)
+        print('\n\n')
 
 
 def menu_main():
@@ -28,9 +29,9 @@ def menu_main():
           'x - exit')
 
 
-def menu_main_handler(option: str):
+def menu_main_handler(option: str, inventory=None):
     if option == '1':
-        list_all()
+        list_all(inventory)
         new_state = 'main'
     elif option == '2':
         new_state = 'add'
@@ -49,7 +50,7 @@ def menu_add():
           'or press x to go back')
 
 
-def menu_add_handler(option):
+def menu_add_handler(option, inventory):
     new_item = option.split(',')
     if option == 'x':
         new_state = 'main'
@@ -57,19 +58,18 @@ def menu_add_handler(option):
         new_state = 'inv'
     else:
         try:
-            inventory[max(inventory.keys()) + 1] = InventoryItem(new_item[0].strip(), int(new_item[1]))
+            inventory[max(inventory_db.keys()) + 1] = InventoryItem(new_item[0].strip(), int(new_item[1]))
 
             print('Item added!\n')
             new_state = 'main'
         except (TypeError, ValueError):
-            print('Invalid entry, going back to main menu...\n')
-            new_state = 'main'
+            new_state = 'inv'
 
     return new_state
 
 
 def menu_edit():
-    list_all()
+    list_all(inventory_db)
     print('Select item you wish to remove by ID.\n'
           'Input: 3 -> removes ID 3 completely\n'
           'Input: 3, -1 -> substrate 1 from item 3 quantity\n'
@@ -78,7 +78,7 @@ def menu_edit():
           'Input: x -> go back to main menu')
 
 
-def menu_edit_handler(option):
+def menu_edit_handler(option, inventory):
     if option == 'x':
         new_state = 'main'
     else:
@@ -105,9 +105,8 @@ def menu_edit_handler(option):
                         new_quantity)
                     print('Item modified!\n')
                     new_state = 'main'
-        except (TypeError, ValueError):
-            print('Invalid entry, going back to main menu...\n')
-            new_state = 'main'
+        except (TypeError, ValueError, KeyError):
+            new_state = 'inv'
 
     return new_state
 
@@ -132,11 +131,11 @@ def cmd_menu_handler(state):
     print('\n')
 
     if state == 'main':
-        new_state = menu_main_handler(option)
+        new_state = menu_main_handler(option, inventory_db)
     elif state == 'add':
-        new_state = menu_add_handler(option)
+        new_state = menu_add_handler(option, inventory_db)
     elif state == 'edit':
-        new_state = menu_edit_handler(option)
+        new_state = menu_edit_handler(option, inventory_db)
     return new_state
 
 
